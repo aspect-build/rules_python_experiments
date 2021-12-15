@@ -13,7 +13,7 @@ WORKSPACE snippet:
 \`\`\`starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
-    name = "com_aspect_build_rules_python_experiments",
+    name = "aspect_rules_python_experiments",
     sha256 = "${SHA}",
     strip_prefix = "${PREFIX}",
     url = "https://github.com/aspect-build/rules_python_experiments/archive/${TAG}.tar.gz",
@@ -24,7 +24,7 @@ http_archive(
 # you should fetch it *before* calling this.
 # Alternatively, you can skip calling this function, so long as you've
 # already fetched all the dependencies.
-load("@com_aspect_build_rules_python_experiments//python:dependencies.bzl", "rules_python_experiments_dependencies")
+load("@aspect_rules_python_experiments//python:dependencies.bzl", "rules_python_experiments_dependencies")
 rules_python_experiments_dependencies()
 
 \`\`\`
