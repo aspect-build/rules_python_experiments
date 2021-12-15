@@ -30,13 +30,13 @@ artifact or a version fetched from the internet, run this from this
 directory:
 
 ```sh
-OVERRIDE="--override_repository=com_aspect_build_rules_python_experiments=$(pwd)/rules_python_experiments"
+OVERRIDE="--override_repository=aspect_rules_python_experiments=$(pwd)/rules_python_experiments"
 echo "build $OVERRIDE" >> ~/.bazelrc
 echo "fetch $OVERRIDE" >> ~/.bazelrc
 echo "query $OVERRIDE" >> ~/.bazelrc
 ```
 
-This means that any usage of `@com_aspect_build_rules_python_experiments` on your system will point to this folder.
+This means that any usage of `@aspect_rules_python_experiments` on your system will point to this folder.
 
 ## Releasing
 

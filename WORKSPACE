@@ -1,4 +1,4 @@
-workspace(name = "com_aspect_build_rules_python_experiments")
+workspace(name = "aspect_rules_python_experiments")
 
 load(":internal_deps.bzl", "rules_python_experiments_internal_deps")
 
