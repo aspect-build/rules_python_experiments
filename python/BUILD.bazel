@@ -28,9 +28,3 @@ bzl_library(
     srcs = ["defs.bzl"],
     visibility = ["//visibility:public"],
 )
-
-bzl_library(
-    name = "toolchain",
-    srcs = ["toolchain.bzl"],
-    visibility = ["//visibility:public"],
-)
