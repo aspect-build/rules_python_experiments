@@ -1,0 +1,125 @@
+FROM ubuntu:18.04 AS base_image
+RUN apt-get update && apt-get install --yes \
+        build-essential \
+        curl \
+        file \
+        perl
+
+FROM base_image AS bzip2_builder
+WORKDIR /build
+RUN curl -L https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz | tar zxf -
+WORKDIR /build/bzip2-1.0.8
+RUN make CFLAGS="-fPIC" --jobs $(nproc)
+RUN make install PREFIX=/var/buildlibs/bzip2
+
+FROM base_image AS readline_builder
+WORKDIR /build
+RUN curl -L https://ftp.gnu.org/gnu/readline/readline-8.1.tar.gz | tar zxf -
+WORKDIR /build/readline-8.1
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/readline --disable-shared
+RUN make --jobs $(nproc)
+RUN make install-static
+
+FROM base_image AS gdbm_builder
+WORKDIR /build
+RUN curl -L https://ftp.gnu.org/gnu/gdbm/gdbm-1.22.tar.gz | tar zxf -
+WORKDIR /build/gdbm-1.22
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/gdbm --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS libffi_builder
+WORKDIR /build
+RUN curl -L https://github.com/libffi/libffi/releases/download/v3.4.2/libffi-3.4.2.tar.gz | tar zxf -
+WORKDIR /build/libffi-3.4.2
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/libffi --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS ncurses_builder
+WORKDIR /build
+RUN curl -L https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.3.tar.gz | tar zxf -
+WORKDIR /build/ncurses-6.3
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/ncurses --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS termcap_builder
+WORKDIR /build
+RUN curl -L https://ftp.gnu.org/gnu/termcap/termcap-1.3.1.tar.gz | tar zxf -
+WORKDIR /build/termcap-1.3.1
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/termcap --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS tcl_builder
+WORKDIR /build
+RUN curl -L https://github.com/tcltk/tcl/archive/refs/tags/core-8-6-12.tar.gz | tar zxf -
+WORKDIR /build/tcl-core-8-6-12/unix
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/tcl --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS sqlite_builder
+WORKDIR /build
+RUN curl -L https://github.com/sqlite/sqlite/archive/refs/tags/version-3.37.0.tar.gz | tar zxf -
+WORKDIR /build/sqlite-version-3.37.0
+COPY --from=tcl_builder /var/buildlibs/tcl /usr
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/sqlite --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS xz_builder
+WORKDIR /build
+RUN curl -L https://tukaani.org/xz/xz-5.2.5.tar.gz | tar zxf -
+WORKDIR /build/xz-5.2.5
+RUN ./configure CPPFLAGS="-fPIC" --prefix=/var/buildlibs/xz --disable-shared
+RUN make --jobs $(nproc)
+RUN make install
+
+FROM base_image AS openssl_builder
+WORKDIR /build
+RUN curl -L https://www.openssl.org/source/openssl-1.1.1m.tar.gz | tar zxf -
+WORKDIR /build/openssl-1.1.1m
+RUN ./config --prefix=/var/buildlibs/openssl no-shared no-tests
+RUN make CPPFLAGS="-fPIC" --jobs $(nproc)
+RUN make install_sw install_ssldirs
+
+FROM base_image AS zlib_builder
+WORKDIR /build
+RUN curl -L https://zlib.net/zlib-1.2.11.tar.gz | tar zxf -
+WORKDIR /build/zlib-1.2.11
+RUN ./configure --prefix=/var/buildlibs/zlib --static
+RUN make CFLAGS="-fPIC" --jobs $(nproc)
+RUN make install
+
+FROM base_image
+
+WORKDIR /build
+RUN curl -L https://github.com/python/cpython/archive/refs/tags/v3.6.15.tar.gz | tar zxf -
+WORKDIR /build/cpython-3.6.15
+
+COPY --from=bzip2_builder /var/buildlibs/bzip2 /usr
+COPY --from=readline_builder /var/buildlibs/readline /usr
+COPY --from=gdbm_builder /var/buildlibs/gdbm /usr
+COPY --from=libffi_builder /var/buildlibs/libffi /usr
+COPY --from=ncurses_builder /var/buildlibs/ncurses /usr
+COPY --from=termcap_builder /var/buildlibs/termcap /usr
+COPY --from=tcl_builder /var/buildlibs/tcl /usr
+COPY --from=sqlite_builder /var/buildlibs/sqlite /usr
+COPY --from=xz_builder /var/buildlibs/xz /usr
+COPY --from=openssl_builder /var/buildlibs/openssl /usr
+COPY --from=zlib_builder /var/buildlibs/zlib /usr
+
+COPY ./overrides/Modules/Setup.local ./Modules/Setup.local
+
+RUN ./configure \
+        CPPFLAGS="-fPIC" \
+        --prefix=$(pwd)/buildpython \
+        --enable-optimizations \
+        --with-lto \
+        --with-gpo
+RUN make --jobs $(nproc)
+RUN make test
+RUN make install
+RUN tar --create --gzip --file python.tar.gz buildpython/

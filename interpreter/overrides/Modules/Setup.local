@@ -1,0 +1,19 @@
+DESTLIB=$(LIBDEST)
+MACHDESTLIB=$(BINLIBDEST)
+DESTPATH=
+SITEPATH=
+TESTPATH=
+COREPYTHONPATH=$(DESTPATH)$(SITEPATH)$(TESTPATH)
+PYTHONPATH=$(COREPYTHONPATH)
+
+*static*
+
+readline -I/usr/include -L/usr/lib readline.c -lreadline -lncurses
+_curses -I/usr/include -I/usr/include/ncurses -L/usr/lib _cursesmodule.c -lncurses -ltermcap -DHAVE_NCURSES_H -DHAVE_TERM_H -DPy_BUILD_CORE_MODULE
+_curses_panel -I/usr/include -I/usr/include/ncurses -L/usr/lib _curses_panel.c -lpanel -lncurses
+_gdbm -I/usr/include -L/usr/lib _gdbmmodule.c -lgdbm
+_ssl -I/usr/include -L/usr/lib _ssl.c -DOPENSSL_THREADS -lssl -lcrypto
+_hashlib -I/usr/include -L/usr/lib _hashopenssl.c -DOPENSSL_THREADS -lcrypto
+_lzma -I/usr/include -L/usr/lib _lzmamodule.c -llzma
+zlib -I/usr/include -L/usr/lib zlibmodule.c -lz
+_tracemalloc _tracemalloc.c
