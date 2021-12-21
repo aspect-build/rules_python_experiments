@@ -12,6 +12,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-interpreter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: |-
+          set -o errexit -o nounset -o pipefail
+          docker build \
+            --file interpreter/Dockerfile.cpython36 \
+            --tag python-interpreter:cpython36 \
+            interpreter/
+          docker cp $(docker create --rm python-interpreter:cpython36):/var/buildpython/cpython36.tar.gz cpython36.tar.gz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: cpython36.tar.gz
+          path: cpython36.tar.gz
+
   test:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
