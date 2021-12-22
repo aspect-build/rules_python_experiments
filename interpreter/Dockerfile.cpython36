@@ -115,10 +115,13 @@ COPY ./overrides/Modules/Setup.local ./Modules/Setup.local
 
 RUN ./configure \
         CPPFLAGS="-fPIC" \
-        --prefix=$(pwd)/buildpython \
-        --enable-optimizations \
-        --with-lto \
-        --with-gpo
+        --prefix=$(pwd)/buildpython
+# RUN ./configure \
+#         CPPFLAGS="-fPIC" \
+#         --prefix=$(pwd)/buildpython \
+#         --enable-optimizations \
+#         --with-lto \
+#         --with-gpo
 RUN make --jobs $(nproc)
 RUN make test
 RUN make install
