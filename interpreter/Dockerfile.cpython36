@@ -113,6 +113,9 @@ COPY --from=zlib_builder /var/buildlibs/zlib /usr
 
 COPY ./overrides/Modules/Setup.local ./Modules/Setup.local
 
+COPY ./patches/no_user_site_directory.patch ./patches/no_user_site_directory.patch
+RUN patch -p0 --input patches/no_user_site_directory.patch
+
 RUN ./configure \
         CPPFLAGS="-fPIC" \
         --prefix=$(pwd)/buildpython \
