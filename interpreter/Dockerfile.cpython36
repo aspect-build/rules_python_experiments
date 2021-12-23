@@ -93,6 +93,12 @@ RUN ./configure --prefix=/var/buildlibs/zlib --static
 RUN make CFLAGS="-fPIC" --jobs $(nproc)
 RUN make install
 
+FROM base_image AS nousersite_builder
+WORKDIR /build
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+COPY ./bin/python3-nousersite.rs ./python3-nousersite.rs
+RUN "${HOME}/.cargo/bin/rustc" python3-nousersite.rs -C opt-level=2 -o python3-nousersite && strip python3-nousersite
+
 FROM base_image
 
 WORKDIR /build
@@ -113,9 +119,6 @@ COPY --from=zlib_builder /var/buildlibs/zlib /usr
 
 COPY ./overrides/Modules/Setup.local ./Modules/Setup.local
 
-COPY ./patches/no_user_site_directory.patch ./patches/no_user_site_directory.patch
-RUN patch -p0 --input patches/no_user_site_directory.patch
-
 RUN ./configure \
         CPPFLAGS="-fPIC" \
         --prefix=/build/cpython-3.6.15/output/python/install \
@@ -125,6 +128,7 @@ RUN ./configure \
 RUN make --jobs $(nproc)
 RUN make test --jobs $(nproc)
 RUN make install --jobs $(nproc)
+COPY --from=nousersite_builder /build/python3-nousersite /build/cpython-3.6.15/output/python/install/bin/python3-nousersite
 RUN mkdir -p /var/buildpython/
 WORKDIR /build/cpython-3.6.15/output
 RUN tar --create --gzip --file /var/buildpython/cpython36.tar.gz python/
