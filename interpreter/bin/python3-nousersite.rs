@@ -34,10 +34,14 @@ fn main() {
 
     let selfargs: Vec<String> = env::args().collect();
     let args = selfargs[1..selfargs.len()].to_vec();
-    process::exit(process::Command::new(pythonbin)
+    process::exit(
+        process::Command::new(pythonbin)
             .args(args)
             .stdin(process::Stdio::inherit())
             .env("PYTHONNOUSERSITE", "1")
-            .status().unwrap()
-            .code().unwrap());
+            .status()
+            .unwrap()
+            .code()
+            .unwrap(),
+    );
 }
