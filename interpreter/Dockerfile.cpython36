@@ -118,11 +118,13 @@ RUN patch -p0 --input patches/no_user_site_directory.patch
 
 RUN ./configure \
         CPPFLAGS="-fPIC" \
-        --prefix=$(pwd)/buildpython \
+        --prefix=/build/cpython-3.6.15/output/python/install \
         --enable-optimizations \
         --with-lto \
         --with-gpo
 RUN make --jobs $(nproc)
 RUN make test --jobs $(nproc)
 RUN make install --jobs $(nproc)
-RUN mkdir -p /var/buildpython/ && tar --create --gzip --file /var/buildpython/cpython36.tar.gz buildpython/
+RUN mkdir -p /var/buildpython/
+WORKDIR /build/cpython-3.6.15/output
+RUN tar --create --gzip --file /var/buildpython/cpython36.tar.gz python/
