@@ -57,7 +57,7 @@ toolchain(
     exec_compatible_with = {compatible_with},
     target_compatible_with = {compatible_with},
     toolchain = "@{user_repository_name}_{platform}//:python_runtimes",
-    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
+    toolchain_type = "@aspect_rules_python_experiments//python:toolchain_type",
 )
 """.format(
             platform = platform,
