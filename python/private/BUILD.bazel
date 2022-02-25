@@ -3,7 +3,10 @@ load("//python/private:py_version.bzl", "py_version", "py_version_default")
 load("//python/private:versions.bzl", "MINOR_MAPPING", "TOOL_VERSIONS")
 
 exports_files(
-    ["entry.py.tmpl"],
+    [
+        "entry.py.tmpl",
+        "entry.tmpl.sh",
+    ],
     visibility = ["//visibility:public"],
 )
 

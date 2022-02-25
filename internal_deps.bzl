@@ -63,6 +63,7 @@ def rules_python_experiments_internal_deps():
     maybe(
         http_archive,
         name = "aspect_bazel_lib",
-        sha256 = "8c8cf0554376746e2451de85c4a7670cc8d7400c1f091574c1c1ed2a65021a4c",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v0.2.6/bazel_lib-0.2.6.tar.gz",
+        sha256 = "ca5ae17c88cf7235e720ac97b2f5b0509a02eacfc43f6f6dd4c831dacbe197c6",
+        strip_prefix = "bazel-lib-0.4.3",
+        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v0.4.3.tar.gz",
     )

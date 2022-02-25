@@ -20,6 +20,6 @@ def resolve_py_interpreter_from_info(info, caller):
 
 def dict_to_exports(env):
     return [
-        "export %s=%s" % (k, v)
+        "export %s=\"%s\"" % (k, v)
         for (k, v) in env.items()
     ]

@@ -24,12 +24,13 @@ def _py_interpreter(ctx):
         fail("Must define either 'interpreter' or 'interpreter_path' for py_interpreter rule '%s'" % ctx.attr.name)
 
     py_interpreter_info = PyInterpreterInfo(
-        version = ctx.attr.version,
-        interpreter_path = interpreter_path,
-        interpreter = interpreter,
+        env = ctx.attr.env,
         files = ctx.attr.files,
         flags = ctx.attr.default_interpreter_flags,
-        env = ctx.attr.env,
+        interpreter = interpreter,
+        interpreter_path = interpreter_path,
+        pip = ctx.file.pip,
+        version = ctx.attr.version,
     )
 
     py_interpreter = resolve_py_interpreter_from_info(py_interpreter_info, ctx.attr.name)
@@ -87,18 +88,6 @@ py_interpreter = rule(
             doc = "Version of this interpreter, provided by the py_version rule",
             providers = [PyVersionInfo],
         ),
-        "interpreter": attr.label(
-            allow_single_file = True,
-            doc = "When using an interpreter built from source, this is the label of the rule that will build the interpreter",
-        ),
-        "files": attr.label_list(
-            allow_files = True,
-            doc = "List of files assoicated with the interpreter",
-        ),
-        "interpreter_path": attr.string(
-            default = "",
-            doc = "When using an interpreter on the machine where the action is running, then this is the path to the Python interpreter executable",
-        ),
         "default_interpreter_flags": attr.string_list(
             default = ["-B", "-s"],
             doc = "A set of flags set on the invocation of the Python interpreter",
@@ -108,6 +97,24 @@ py_interpreter = rule(
                 "PYTHONHASHSEED": "1",
             },
             doc = "A set of enviournment variables set on each invocation of the Python interpreter",
+        ),
+        "interpreter": attr.label(
+            allow_single_file = True,
+            doc = "When using an interpreter built from source, this is the label of the rule that will build the interpreter",
+        ),
+        "interpreter_path": attr.string(
+            default = "",
+            doc = "When using an interpreter on the machine where the action is running, then this is the path to the Python interpreter executable",
+        ),
+        "files": attr.label_list(
+            allow_files = True,
+            doc = "List of files assoicated with the interpreter",
+        ),
+        # TODO(matt): add pip_path
+        "pip": attr.label(
+            mandatory = True,
+            allow_single_file = True,
+            doc = "Label used for pip",
         ),
     },
     provides = [PyInterpreterInfo],

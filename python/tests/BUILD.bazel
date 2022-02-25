@@ -1,21 +1,49 @@
-load("//python/private:python.bzl", "py_test")
+load("//python/private:python.bzl", "py_binary", "py_test")
 load(":versions_test.bzl", "versions_test_suite")
+load("@rules_python//python/pip_install:requirements.bzl", "compile_pip_requirements")
+
+exports_files(["requirements.txt"])
 
 versions_test_suite(name = "versions_test")
+
+compile_pip_requirements(
+    name = "requirements",
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.txt",
+)
 
 py_test(
     name = "python_version_test",
     srcs = ["python_version_test.py"],
     env = {
-        "PYTHON_VERSION": "3.9.7"
-    }
+        "PYTHON_VERSION": "3.10.0",
+    },
+    python_version = "@aspect_rules_python_experiments//python/private:v3.10",
 )
 
 py_test(
-    name = "python_version_test_non_default",
+    name = "python_version_test_default",
     srcs = ["python_version_test.py"],
     env = {
-        "PYTHON_VERSION": "3.10.0"
+        "PYTHON_VERSION": "3.10.0",
     },
+)
+
+py_binary(
+    name = "bin",
+    srcs = [
+        "__main__.py",
+    ],
+    main = "__main__.py",
     python_version = "@aspect_rules_python_experiments//python/private:v3.10",
+    requirements_locked = "requirements.txt",
+    # TODO(matt): we should be able to move wheels directly to deps, but we'd need to add a new provider marking
+    #  it as a wheel so we know to add it to the wheelhouse when building the venv
+    wheels = [
+        "@pypi_django//:whl",
+    ],
+    deps = [
+        "//examples/library/logger",
+        "//python/tests/libgreet",
+    ],
 )

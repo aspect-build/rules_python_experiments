@@ -2,3 +2,5 @@ bazel-*
 .bazelrc.user
 .idea
 .venv
+
+__pycache__/

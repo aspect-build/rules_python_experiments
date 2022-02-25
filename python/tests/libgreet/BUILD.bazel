@@ -1,0 +1,23 @@
+load("//python/private:python.bzl", "py_library")
+load("@rules_python//python:defs.bzl", _py_library = "py_library")
+
+py_library(
+    name = "libgreet",
+    srcs = [
+        "__init__.py",
+        "greeter.py",
+        "utils.py",
+    ],
+    imports = [".."],
+    visibility = ["//python/tests:__subpackages__"],
+)
+
+_py_library(
+    name = "py_libgreet",
+    srcs = [
+        "__init__.py",
+        "greeter.py",
+    ],
+    imports = [".."],
+    visibility = ["//python/tests:__subpackages__"],
+)

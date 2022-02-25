@@ -59,6 +59,14 @@ toolchain(
     toolchain = "@{user_repository_name}_{platform}//:python_runtimes",
     toolchain_type = "@aspect_rules_python_experiments//python:toolchain_type",
 )
+
+toolchain(
+    name = "{platform}_toolchain_native",
+    exec_compatible_with = {compatible_with},
+    target_compatible_with = {compatible_with},
+    toolchain = "@{user_repository_name}_{platform}//:python_runtimes_native",
+    toolchain_type = "@bazel_tools//tools/python:toolchain_type",
+)
 """.format(
             platform = platform,
             name = repository_ctx.attr.name,

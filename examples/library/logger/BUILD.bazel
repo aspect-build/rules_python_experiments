@@ -1,0 +1,18 @@
+load("//python/private:py_library.bzl", "py_library")
+
+genrule(
+    name = "gen_prefix",
+    outs = ["prefix.py"],
+    cmd = "echo 'PREFIX=\"[LOG]\"' > $@",
+)
+
+py_library(
+    name = "logger",
+    srcs = [
+        "__init__.py",
+        "logger.py",
+        "prefix.py",
+    ],
+    imports = [".."],
+    visibility = ["//python:__subpackages__"],
+)
