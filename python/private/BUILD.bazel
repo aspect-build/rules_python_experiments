@@ -1,4 +1,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//python/private:py_version.bzl", "py_version", "py_version_default")
+load("//python/private:versions.bzl", "MINOR_MAPPING", "TOOL_VERSIONS")
+
+exports_files(
+    ["entry.py.tmpl"],
+    visibility = ["//visibility:public"],
+)
 
 bzl_library(
     name = "toolchains_repo",
@@ -11,3 +18,24 @@ bzl_library(
     srcs = ["versions.bzl"],
     visibility = ["//python:__subpackages__"],
 )
+
+# Marker used internally in Python version resolution
+py_version_default()
+
+[
+    py_version(
+        name = "v{}".format(v),
+        version = v,
+        visibility = ["//visibility:public"],
+    )
+    for v in TOOL_VERSIONS.keys()
+]
+
+[
+    alias(
+        name = "v{}".format(k),
+        actual = ":v{}".format(v),
+        visibility = ["//visibility:public"],
+    )
+    for (k, v) in MINOR_MAPPING.items()
+]

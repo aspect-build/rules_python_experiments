@@ -9,8 +9,12 @@ load("//python:repositories.bzl", "python_register_toolchains", "rules_python_ex
 rules_python_experiments_dependencies()
 
 python_register_toolchains(
-    name = "python39",
-    python_version = "3.9",
+    name = "pythons",
+    python_versions = [
+        "3.9",
+        "3.10",
+    ],
+    default_python_version = "3.9",
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")

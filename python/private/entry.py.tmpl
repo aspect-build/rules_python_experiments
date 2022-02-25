@@ -1,0 +1,109 @@
+#! $PYTHON_INTERPRETER_PATH$ -Bs
+
+import sys
+
+# The Python interpreter unconditionally prepends the directory containing this
+# script (following symlinks) to the import path. This is the cause of #9239,
+# and is a special case of #7091. We therefore explicitly delete that entry.
+del sys.path[0]
+
+import os
+import re
+
+PYTHON="$PYTHON_INTERPRETER_PATH$"
+PY_BINARY_MAIN="$BINARY_ENTRY_POINT$"
+EXPECTED_INTERPRETER_VERSION="$EXPECTED_INTERPRETER_VERSION$"
+PYTHON_PATHS=["$PYTHON_PATHS$"]
+
+DEFAULT_PYTHON_FLAGS=["-B", "-s"]
+ENV=["$PYTHON_ENV$"]
+ARGV=sys.argv[1:]
+
+
+def check_interpreter_version(expected):
+    version_str = str(sys.version_info.major) + "." + str(sys.version_info.minor) + "." + str(sys.version_info.micro)
+    if version_str != expected:
+        msg="Expected Python version to be {expected}, but got {version_str}".format(
+            expected = expected,
+            version_str = version_str
+        )
+        print(msg, file=sys.stderr, flush=True)
+        sys.exit(1)
+
+def is_windows():
+  return os.name == 'nt'
+
+def find_runfiles_root():
+  """Finds the runfiles tree root"""
+
+  stub_filename = sys.argv[0]
+  if not os.path.isabs(stub_filename):
+    stub_filename = os.path.join(os.getcwd(), stub_filename)
+
+  while True:
+    module_space = stub_filename + ('.exe' if is_windows() else '') + '.runfiles'
+    if os.path.isdir(module_space):
+      return module_space
+
+    runfiles_pattern = r'(.*\.runfiles)' + (r'\\' if is_windows() else '/') + '.*'
+    matchobj = re.match(runfiles_pattern, stub_filename)
+    if matchobj:
+      return matchobj.group(1)
+
+    if not os.path.islink(stub_filename):
+      break
+    target = os.readlink(stub_filename)
+    if os.path.isabs(target):
+      stub_filename = target
+    else:
+      stub_filename = os.path.join(os.path.dirname(stub_filename), target)
+
+  raise AssertionError('Cannot find .runfiles directory for %s' % sys.argv[0])
+
+def deduplicate_list(items):
+  """Efficiently filter out duplicates, keeping the first element only."""
+  seen = set()
+  for it in items:
+      if it not in seen:
+          seen.add(it)
+          yield it
+
+def get_repositories_paths(runfiles_root, import_all):
+  if not import_all:
+    return [os.path.join(runfiles_root, "%BAZEL_WORKSPACE_NAME%")]
+
+  repo_dirs = [os.path.join(runfiles_root, d) for d in os.listdir(runfiles_root)]
+  repo_dirs.sort()
+  return [d for d in repo_dirs if os.path.isdir(d)]
+
+def get_python_path(entries, runfiles_root):
+    existing_python_path = os.environ.get("PYTHONPATH", "")
+    new_path_entries = [runfiles_root] + [
+      os.path.join(runfiles_root, p)
+      for p in 
+      deduplicate_list(entries)
+    ] + get_repositories_paths(runfiles_root, True)
+    
+    if len(existing_python_path) > 0:
+      new_path_entries = [existing_python_path] + new_path_entries
+
+    return os.pathsep.join(new_path_entries)
+
+def main():
+    check_interpreter_version(EXPECTED_INTERPRETER_VERSION)
+
+    os.environ["PYTHONPATH"] = get_python_path(PYTHON_PATHS, find_runfiles_root())
+
+    if len(ENV) > 0:
+      os.environ.update(ENV)
+
+    args = [PYTHON] + DEFAULT_PYTHON_FLAGS + [PY_BINARY_MAIN] + ARGV
+
+    try:
+        os.execv(PYTHON, args)
+    except Exception as e:
+        print(e, file=sys.stderr, flush=True)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
